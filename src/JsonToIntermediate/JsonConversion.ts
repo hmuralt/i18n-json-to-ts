@@ -11,12 +11,12 @@ import {
   isPrimitiveValueDescription,
   PrimitiveValueDescription,
   isPrimitiveStringValueDescription,
-  ArrayValueDescription
+  ArrayValueDescription,
 } from "../Intermediate/IntermediateStructure";
 import { placeholderRegex, getAllMatches } from "./RegexUtils";
 import { PluralFormObject, PrimitiveJsonType, pluralFormNthKey } from "./JsonStructure";
 
-export default function convertObject(value: {}): ObjectValueDescription | PluralFunctionValueDescription {
+export default function convertObject(value: object): ObjectValueDescription | PluralFunctionValueDescription {
   return isPluralFormObject(value) ? convertPluralFormObject(value) : convertSimpleObject(value);
 }
 
@@ -44,7 +44,7 @@ function convertPluralFormObject(obj: PluralFormObject): PluralFunctionValueDesc
   return {
     type: ValueDescriptionType.PluralFunction,
     args: argSet.args,
-    values
+    values,
   };
 }
 
@@ -56,7 +56,7 @@ function getPluralFunctionValues(nthValue: string) {
     : { n: nthValueDescription.stringParts };
 }
 
-function convertSimpleObject(obj: {}): ObjectValueDescription {
+function convertSimpleObject(obj: object): ObjectValueDescription {
   const propertyDescriptions = new Map<string, ValueDescription>();
   const keys = Object.keys(obj);
 
@@ -69,21 +69,21 @@ function convertSimpleObject(obj: {}): ObjectValueDescription {
 
   return {
     type: ValueDescriptionType.Object,
-    propertyDescriptions
+    propertyDescriptions,
   };
 }
 
-// tslint:disable-next-line: no-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function convertArray(values: any[]): ArrayValueDescription {
   const valueDescriptions = values.map((value) => convertValue(value));
 
   return {
     type: ValueDescriptionType.Array,
-    valueDescriptions
+    valueDescriptions,
   };
 }
 
-// tslint:disable-next-line: no-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function convertValue(value: any) {
   const valueType = typeof value;
 
@@ -105,7 +105,7 @@ function convertValue(value: any) {
 function convertPrimitive(value: PrimitiveJsonType): PrimitiveValueDescription {
   return {
     type: ValueDescriptionType.Primitive,
-    value
+    value,
   };
 }
 
@@ -127,7 +127,7 @@ function convertStringToPlaceholderFunction(
   for (const placeholderMatch of placeholderMatches) {
     const arg = {
       name: placeholderMatch[1],
-      type: getTypeFrom(placeholderMatch[2])
+      type: getTypeFrom(placeholderMatch[2]),
     };
 
     argSet.add(arg);
@@ -137,7 +137,7 @@ function convertStringToPlaceholderFunction(
   return {
     type: ValueDescriptionType.PlaceholderFunction,
     args: argSet.args,
-    stringParts: stringPartsBuilder.stringPart
+    stringParts: stringPartsBuilder.stringPart,
   };
 }
 
@@ -161,7 +161,7 @@ function createArgSet(initialArgs: Arg[] = []) {
     },
     get args() {
       return Array.from(argMap.values());
-    }
+    },
   };
 }
 
@@ -186,6 +186,6 @@ function createStringPartsBuilder(value: string) {
       }
 
       return stringPart;
-    }
+    },
   };
 }

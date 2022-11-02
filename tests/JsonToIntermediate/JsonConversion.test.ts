@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import convertObject from "../../src/JsonToIntermediate/JsonConversion";
 import {
   ArgType,
@@ -7,18 +8,17 @@ import {
   isPluralFunctionValueDescription,
   isArrayValueDescription,
   isPrimitiveValueDescription,
-  ValueDescriptionType
+  ValueDescriptionType,
 } from "../../src/Intermediate/IntermediateStructure";
 
 describe("JsonConversion", () => {
   describe("convertJson", () => {
     describe("when converting primitive properties", () => {
-      // tslint:disable-next-line: no-any
-      function primitiveValueDescriptionTest(testPropertyValue: any) {
+      function primitiveValueDescriptionTest(testPropertyValue: unknown) {
         // Arrange
         const testPropertyName = "myNoneStringProp";
         const testJsonObject = {
-          [testPropertyName]: testPropertyValue
+          [testPropertyName]: testPropertyValue,
         };
 
         // Act
@@ -46,7 +46,7 @@ describe("JsonConversion", () => {
         const testPlaceholderType = "string";
         const testPropertyValue = `This is a test with a {${testPlaceholderName}: ${testPlaceholderType}} placeholder.`;
         const testJsonObject = {
-          [testPropertyName]: testPropertyValue
+          [testPropertyName]: testPropertyValue,
         };
 
         // Act
@@ -61,15 +61,15 @@ describe("JsonConversion", () => {
         expect(placeholderFunctionValueDescription.args).toEqual([
           {
             name: testPlaceholderName,
-            type: ArgType.String
-          }
+            type: ArgType.String,
+          },
         ]);
         expect(placeholderFunctionValueDescription.stringParts).toEqual([
           "This is a test with a ",
           {
-            name: testPlaceholderName
+            name: testPlaceholderName,
           },
-          " placeholder."
+          " placeholder.",
         ]);
       });
 
@@ -80,7 +80,7 @@ describe("JsonConversion", () => {
         const testPlaceholderType = "string";
         const testPropertyValue = `{${testPlaceholderName}: ${testPlaceholderType}} placeholder.`;
         const testJsonObject = {
-          [testPropertyName]: testPropertyValue
+          [testPropertyName]: testPropertyValue,
         };
 
         // Act
@@ -94,9 +94,9 @@ describe("JsonConversion", () => {
         );
         expect(placeholderFunctionValueDescription.stringParts).toEqual([
           {
-            name: testPlaceholderName
+            name: testPlaceholderName,
           },
-          " placeholder."
+          " placeholder.",
         ]);
       });
 
@@ -107,7 +107,7 @@ describe("JsonConversion", () => {
         const testPlaceholderType = "string";
         const testPropertyValue = `it begins with {${testPlaceholderName}: ${testPlaceholderType}}`;
         const testJsonObject = {
-          [testPropertyName]: testPropertyValue
+          [testPropertyName]: testPropertyValue,
         };
 
         // Act
@@ -122,8 +122,8 @@ describe("JsonConversion", () => {
         expect(placeholderFunctionValueDescription.stringParts).toEqual([
           "it begins with ",
           {
-            name: testPlaceholderName
-          }
+            name: testPlaceholderName,
+          },
         ]);
       });
 
@@ -134,7 +134,7 @@ describe("JsonConversion", () => {
         const testPlaceholderType = "foo";
         const testPropertyValue = `{${testPlaceholderName}: ${testPlaceholderType}}`;
         const testJsonObject = {
-          [testPropertyName]: testPropertyValue
+          [testPropertyName]: testPropertyValue,
         };
 
         // Act
@@ -149,13 +149,13 @@ describe("JsonConversion", () => {
         expect(placeholderFunctionValueDescription.args).toEqual([
           {
             name: testPlaceholderName,
-            type: ArgType.String
-          }
+            type: ArgType.String,
+          },
         ]);
         expect(placeholderFunctionValueDescription.stringParts).toEqual([
           {
-            name: testPlaceholderName
-          }
+            name: testPlaceholderName,
+          },
         ]);
       });
 
@@ -166,7 +166,7 @@ describe("JsonConversion", () => {
         const testPlaceholderType = "foo";
         const testPropertyValue = `1: {${testPlaceholderName}: ${testPlaceholderType}}, 2: {${testPlaceholderName}: ${testPlaceholderType}}.`;
         const testJsonObject = {
-          [testPropertyName]: testPropertyValue
+          [testPropertyName]: testPropertyValue,
         };
 
         // Act
@@ -181,8 +181,8 @@ describe("JsonConversion", () => {
         expect(placeholderFunctionValueDescription.args).toEqual([
           {
             name: testPlaceholderName,
-            type: ArgType.String
-          }
+            type: ArgType.String,
+          },
         ]);
       });
     });
@@ -193,7 +193,7 @@ describe("JsonConversion", () => {
         const testPropertyName = "myObjectProp";
         const testPropertyValue = {};
         const testJsonObject = {
-          [testPropertyName]: testPropertyValue
+          [testPropertyName]: testPropertyValue,
         };
 
         // Act
@@ -221,10 +221,10 @@ describe("JsonConversion", () => {
           [testInnerStringPropertyName]: "This is a test value",
           [testInnerPlaceholderPropertyName]: "This is {param1: number} placeholder",
           [testInnerArrayPropertyName]: [],
-          [testInnerPluralFormPropertyName]: { 0: "zero", 1: "one", n: "many" }
+          [testInnerPluralFormPropertyName]: { 0: "zero", 1: "one", n: "many" },
         };
         const testJsonObject = {
-          [testPropertyName]: testPropertyValue
+          [testPropertyName]: testPropertyValue,
         };
 
         // Act
@@ -256,10 +256,10 @@ describe("JsonConversion", () => {
         const testPropertyValue = {
           0: "No tests",
           1: "One test",
-          n: "{count: number} tests"
+          n: "{count: number} tests",
         };
         const testJsonObject = {
-          [testPropertyName]: testPropertyValue
+          [testPropertyName]: testPropertyValue,
         };
 
         // Act
@@ -274,18 +274,18 @@ describe("JsonConversion", () => {
         expect(pluralFunctionValueDescription.args).toEqual([
           {
             name: "count",
-            type: "number"
-          }
+            type: "number",
+          },
         ]);
         expect(pluralFunctionValueDescription.values).toEqual({
           0: "No tests",
           1: "One test",
           n: [
             {
-              name: "count"
+              name: "count",
             },
-            " tests"
-          ]
+            " tests",
+          ],
         });
       });
 
@@ -295,10 +295,10 @@ describe("JsonConversion", () => {
         const testPropertyValue = {
           0: "No { somePlaceholder: object } tests",
           1: "One { anotherPlaceholder: string } test",
-          n: "{count: number} tests"
+          n: "{count: number} tests",
         };
         const testJsonObject = {
-          [testPropertyName]: testPropertyValue
+          [testPropertyName]: testPropertyValue,
         };
 
         // Act
@@ -313,16 +313,16 @@ describe("JsonConversion", () => {
         expect(pluralFunctionValueDescription.args).toEqual([
           {
             name: "count",
-            type: "number"
+            type: "number",
           },
           {
             name: "somePlaceholder",
-            type: "object"
+            type: "object",
           },
           {
             name: "anotherPlaceholder",
-            type: "string"
-          }
+            type: "string",
+          },
         ]);
       });
     });
@@ -333,7 +333,7 @@ describe("JsonConversion", () => {
         const testPropertyName = "myArrayProp";
         const testPropertyValue: string[] = [];
         const testJsonObject = {
-          [testPropertyName]: testPropertyValue
+          [testPropertyName]: testPropertyValue,
         };
 
         // Act
@@ -357,10 +357,10 @@ describe("JsonConversion", () => {
           "This is {param1: number} placeholder",
           [],
           { 0: "zero", 1: "one", n: "many" },
-          {}
+          {},
         ];
         const testJsonObject = {
-          [testPropertyName]: testPropertyValue
+          [testPropertyName]: testPropertyValue,
         };
 
         // Act
