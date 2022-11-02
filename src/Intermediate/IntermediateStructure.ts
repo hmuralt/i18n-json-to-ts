@@ -5,7 +5,7 @@ export enum ValueDescriptionType {
   Object,
   Array,
   PlaceholderFunction,
-  PluralFunction
+  PluralFunction,
 }
 
 export interface ValueDescription {
@@ -31,7 +31,7 @@ export interface ArrayValueDescription extends ValueDescription {
 export enum ArgType {
   String = "string",
   Number = "number",
-  Object = "object"
+  Object = "object",
 }
 
 export interface Arg {
@@ -40,7 +40,7 @@ export interface Arg {
 }
 
 export type ArgName = Pick<Arg, "name">;
-export type StringPart = Array<string | ArgName>;
+export type StringPart = (string | ArgName)[];
 
 export interface PlaceholderFunctionValueDescription extends ValueDescription {
   type: ValueDescriptionType.PlaceholderFunction;

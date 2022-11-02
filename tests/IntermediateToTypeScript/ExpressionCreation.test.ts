@@ -9,10 +9,7 @@ import {
   PropertyAssignment,
   ArrowFunction,
   SyntaxKind,
-  createKeywordTypeNode,
-  createParameter,
-  createTemplateExpression,
-  createTemplateHead,
+  factory,
   isBlock,
   Block,
   isReturnStatement,
@@ -40,19 +37,18 @@ import createParameters from "../../src/IntermediateToTypeScript/ParameterCreati
 import createTemplate from "../../src/IntermediateToTypeScript/TemplateExpressionCreation";
 import { pluralFormNthKey } from "../../src/JsonToIntermediate/JsonStructure";
 
-const testParameter = createParameter(
-  undefined,
+const testParameter = factory.createParameterDeclaration(
   undefined,
   undefined,
   "testParam",
   undefined,
-  createKeywordTypeNode(SyntaxKind.NumberKeyword)
+  factory.createKeywordTypeNode(SyntaxKind.NumberKeyword)
 );
 const testParameters = [testParameter];
 jest.mock("../../src/IntermediateToTypeScript/ParameterCreation", () => ({
   default: jest.fn(() => testParameters),
 }));
-const testTemplateExpression = createTemplateExpression(createTemplateHead("head"), []);
+const testTemplateExpression = factory.createTemplateExpression(factory.createTemplateHead("head"), []);
 jest.mock("../../src/IntermediateToTypeScript/TemplateExpressionCreation", () => ({
   default: jest.fn(() => testTemplateExpression),
 }));
@@ -217,7 +213,7 @@ describe("TypeScriptCreation", () => {
 
         // Assert
         expect(createParameters).toHaveBeenCalledWith(testPlaceholderFunctionValueDescription.args);
-        expect(result.parameters).toBe(testParameters);
+        expect(result.parameters[0]).toBe(testParameters[0]);
       });
 
       it("returns arrow function with template expression", () => {
@@ -256,7 +252,7 @@ describe("TypeScriptCreation", () => {
 
         // Assert
         expect(createParameters).toHaveBeenCalledWith(testPluralFunctionValueDescription.args);
-        expect(result.parameters).toBe(testParameters);
+        expect(result.parameters[0]).toBe(testParameters[0]);
       });
 
       it("returns arrow function with block as body", () => {
@@ -302,8 +298,10 @@ describe("TypeScriptCreation", () => {
           )
         ).toBe(true);
         expect(
-          ((((result.statements[0] as IfStatement).thenStatement as Block).statements[0] as ReturnStatement)
-            .expression as StringLiteral).text
+          (
+            (((result.statements[0] as IfStatement).thenStatement as Block).statements[0] as ReturnStatement)
+              .expression as StringLiteral
+          ).text
         ).toBe(testPluralFunctionValueDescription.values[0]);
       });
 

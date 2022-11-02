@@ -1,20 +1,4 @@
-import {
-  createObjectLiteral,
-  PropertyAssignment,
-  createPropertyAssignment,
-  SyntaxKind,
-  createLiteral,
-  createArrayLiteral,
-  Expression,
-  createIdentifier,
-  createArrowFunction,
-  createBlock,
-  createBinary,
-  createReturn,
-  createIf,
-  Statement,
-  createStringLiteral,
-} from "typescript";
+import { PropertyAssignment, SyntaxKind, Expression, Statement, factory } from "typescript";
 import {
   ObjectValueDescription,
   ValueDescription,
@@ -57,11 +41,15 @@ export default function createExpression(valueDescription: ValueDescription): Ex
     return createPluralFunction(valueDescription);
   }
 
-  return createLiteral(SyntaxKind.UndefinedKeyword);
+  return factory.createStringLiteral("");
 }
 
 function createValue(valueDescription: PrimitiveValueDescription) {
-  return createLiteral(valueDescription.value);
+  if (typeof valueDescription.value === "number") {
+    return factory.createNumericLiteral(valueDescription.value);
+  }
+
+  return factory.createStringLiteral(valueDescription.value.toString());
 }
 
 function createArray(valueDescription: ArrayValueDescription) {
@@ -69,19 +57,19 @@ function createArray(valueDescription: ArrayValueDescription) {
     createExpression(currentValueDescription)
   );
 
-  return createArrayLiteral(expressions);
+  return factory.createArrayLiteralExpression(expressions);
 }
 
 function createObject(objectValueDescription: ObjectValueDescription) {
   const propertyAssignments = new Array<PropertyAssignment>();
 
   for (const [key, valueDescription] of objectValueDescription.propertyDescriptions) {
-    const name = properteyKeyIdentifierRegex.test(key) ? key : createStringLiteral(key);
+    const name = properteyKeyIdentifierRegex.test(key) ? key : factory.createStringLiteral(key);
 
-    propertyAssignments.push(createPropertyAssignment(name, createExpression(valueDescription)));
+    propertyAssignments.push(factory.createPropertyAssignment(name, createExpression(valueDescription)));
   }
 
-  return createObjectLiteral(propertyAssignments);
+  return factory.createObjectLiteralExpression(propertyAssignments);
 }
 
 function createPlaceholderFunction(valueDescription: PlaceholderFunctionValueDescription) {
@@ -89,7 +77,7 @@ function createPlaceholderFunction(valueDescription: PlaceholderFunctionValueDes
 
   const templateExpression = createTemplate(valueDescription.stringParts);
 
-  return createArrowFunction(undefined, undefined, parameters, undefined, undefined, templateExpression);
+  return factory.createArrowFunction(undefined, undefined, parameters, undefined, undefined, templateExpression);
 }
 
 function createPluralFunction(valueDescription: PluralFunctionValueDescription) {
@@ -97,9 +85,9 @@ function createPluralFunction(valueDescription: PluralFunctionValueDescription) 
 
   const statements = createPluralStatements(valueDescription.values);
 
-  const block = createBlock(statements, false);
+  const block = factory.createBlock(statements, false);
 
-  return createArrowFunction(undefined, undefined, parameters, undefined, undefined, block);
+  return factory.createArrowFunction(undefined, undefined, parameters, undefined, undefined, block);
 }
 
 function createPluralStatements(values: PluralFormObjectDescription) {
@@ -121,17 +109,19 @@ function createPluralStatements(values: PluralFormObjectDescription) {
 }
 
 function createPluralIfBlock(valueKey: string, value: string | StringPart) {
-  const condition = createBinary(
-    createIdentifier("count"),
+  const condition = factory.createBinaryExpression(
+    factory.createIdentifier("count"),
     SyntaxKind.EqualsEqualsEqualsToken,
-    createLiteral(parseInt(valueKey, 10))
+    factory.createNumericLiteral(parseInt(valueKey, 10))
   );
 
-  const ifBody = createBlock([createPluralValueReturn(value)], false);
+  const ifBody = factory.createBlock([createPluralValueReturn(value)], false);
 
-  return createIf(condition, ifBody);
+  return factory.createIfStatement(condition, ifBody);
 }
 
 function createPluralValueReturn(stringPart: string | StringPart) {
-  return createReturn(typeof stringPart === "string" ? createLiteral(stringPart) : createTemplate(stringPart));
+  return factory.createReturnStatement(
+    typeof stringPart === "string" ? factory.createStringLiteral(stringPart) : createTemplate(stringPart)
+  );
 }

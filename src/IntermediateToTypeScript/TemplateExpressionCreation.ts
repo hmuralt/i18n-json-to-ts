@@ -1,17 +1,9 @@
 import { StringPart } from "../Intermediate/IntermediateStructure";
-import {
-  createTemplateHead,
-  createTemplateTail,
-  createTemplateMiddle,
-  createTemplateSpan,
-  createIdentifier,
-  TemplateSpan,
-  createTemplateExpression
-} from "typescript";
+import { factory, TemplateSpan } from "typescript";
 
 export default function createTemplate(stringParts: StringPart) {
   const firstPart = typeof stringParts[0] === "string" ? (stringParts[0] as string) : "";
-  const templateHead = createTemplateHead(firstPart);
+  const templateHead = factory.createTemplateHead(firstPart);
 
   const templateSpans = stringParts
     .map((part, index) => {
@@ -28,14 +20,14 @@ export default function createTemplate(stringParts: StringPart) {
 
       let templateMiddelOrTail;
       if (index === stringParts.length - 1 || index === stringParts.length - 2) {
-        templateMiddelOrTail = createTemplateTail(nextText);
+        templateMiddelOrTail = factory.createTemplateTail(nextText);
       } else {
-        templateMiddelOrTail = createTemplateMiddle(nextText);
+        templateMiddelOrTail = factory.createTemplateMiddle(nextText);
       }
 
-      return createTemplateSpan(createIdentifier(part.name), templateMiddelOrTail);
+      return factory.createTemplateSpan(factory.createIdentifier(part.name), templateMiddelOrTail);
     })
     .filter((templateSpan) => templateSpan !== undefined) as TemplateSpan[];
 
-  return createTemplateExpression(templateHead, templateSpans);
+  return factory.createTemplateExpression(templateHead, templateSpans);
 }

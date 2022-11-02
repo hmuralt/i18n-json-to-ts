@@ -1,11 +1,11 @@
-import { createIdentifier, createKeywordTypeNode, createParameter, SyntaxKind } from "typescript";
+import { factory, SyntaxKind } from "typescript";
 import { Arg, ArgType } from "../Intermediate/IntermediateStructure";
 
 export default function createParameters(args: Arg[]) {
   return args.map((arg) => {
-    const name = createIdentifier(arg.name);
-    const type = createKeywordTypeNode(mapType(arg.type));
-    return createParameter(undefined, undefined, undefined, name, undefined, type);
+    const name = factory.createIdentifier(arg.name);
+    const type = factory.createKeywordTypeNode(mapType(arg.type));
+    return factory.createParameterDeclaration(undefined, undefined, name, undefined, type);
   });
 }
 
@@ -18,6 +18,4 @@ function mapType(argType: ArgType) {
     case ArgType.Object:
       return SyntaxKind.ObjectKeyword;
   }
-
-  return SyntaxKind.StringKeyword;
 }
