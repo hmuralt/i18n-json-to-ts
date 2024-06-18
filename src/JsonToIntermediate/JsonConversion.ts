@@ -23,11 +23,13 @@ export default function convertObject(value: object): ObjectValueDescription | P
 function convertPluralFormObject(obj: PluralFormObject): PluralFunctionValueDescription {
   const fixedCountArg = { name: "count", type: ArgType.Number };
   const argSet = createArgSet([fixedCountArg]);
-  const values = getPluralFunctionValues(obj[pluralFormNthKey]);
+  const values = getPluralFunctionValues(obj[pluralFormNthKey]) as Record<string, StringPart | string> & {
+    [pluralFormNthKey]: string | StringPart;
+  };
 
   const keys = Object.keys(obj).filter((key) => key !== pluralFormNthKey);
   for (const key of keys) {
-    const valueDescription = convertString(obj[key]);
+    const valueDescription = convertString(obj[key as keyof typeof obj]);
 
     if (isPrimitiveStringValueDescription(valueDescription)) {
       values[key] = valueDescription.value;
@@ -61,7 +63,7 @@ function convertSimpleObject(obj: object): ObjectValueDescription {
   const keys = Object.keys(obj);
 
   for (const key of keys) {
-    const value = obj[key];
+    const value = obj[key as keyof typeof obj];
     const valueDescription = convertValue(value);
 
     propertyDescriptions.set(key, valueDescription);
@@ -144,7 +146,9 @@ function convertStringToPlaceholderFunction(
 function isPluralFormObject(obj: { [pluralFormNthKey]?: string }): obj is PluralFormObject {
   return (
     obj[pluralFormNthKey] !== undefined &&
-    Object.keys(obj).every((key) => (key === pluralFormNthKey || /^\d+$/.test(key)) && typeof obj[key] === "string")
+    Object.keys(obj).every(
+      (key) => (key === pluralFormNthKey || /^\d+$/.test(key)) && typeof obj[key as keyof typeof obj] === "string"
+    )
   );
 }
 
