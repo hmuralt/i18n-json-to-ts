@@ -13,8 +13,11 @@ import {
   PluralFunctionValueDescription,
   StringPart,
   PluralFormObjectDescription,
+  isBooleanFunctionValueDescription,
+  BooleanFunctionValueDescription,
+  BooleanFormObjectDescription,
 } from "../Intermediate/IntermediateStructure";
-import { pluralFormNthKey } from "../JsonToIntermediate/JsonStructure";
+import { booleanFormFalseKey, booleanFormTrueKey, pluralFormNthKey } from "../JsonToIntermediate/JsonStructure";
 import createParameters from "./ParameterCreation";
 import createTemplate from "./TemplateExpressionCreation";
 
@@ -39,6 +42,10 @@ export default function createExpression(valueDescription: ValueDescription): Ex
 
   if (isPluralFunctionValueDescription(valueDescription)) {
     return createPluralFunction(valueDescription);
+  }
+
+  if (isBooleanFunctionValueDescription(valueDescription)) {
+    return createBooleanFunction(valueDescription);
   }
 
   return factory.createStringLiteral("");
@@ -90,6 +97,16 @@ function createPluralFunction(valueDescription: PluralFunctionValueDescription) 
   return factory.createArrowFunction(undefined, undefined, parameters, undefined, undefined, block);
 }
 
+function createBooleanFunction(valueDescription: BooleanFunctionValueDescription) {
+  const parameters = createParameters(valueDescription.args);
+
+  const statements = createBooleanStatements(valueDescription.values);
+
+  const block = factory.createBlock(statements, false);
+
+  return factory.createArrowFunction(undefined, undefined, parameters, undefined, undefined, block);
+}
+
 function createPluralStatements(values: PluralFormObjectDescription) {
   const valueKeys = Object.keys(values);
 
@@ -108,6 +125,13 @@ function createPluralStatements(values: PluralFormObjectDescription) {
   return statements;
 }
 
+function createBooleanStatements(values: BooleanFormObjectDescription) {
+  const trueValue = values[booleanFormTrueKey];
+  const falseValue = values[booleanFormFalseKey];
+
+  return [createBooleanValue(trueValue, falseValue)];
+}
+
 function createPluralIfBlock(valueKey: string, value: string | StringPart) {
   const condition = factory.createBinaryExpression(
     factory.createIdentifier("count"),
@@ -124,4 +148,17 @@ function createPluralValueReturn(stringPart: string | StringPart) {
   return factory.createReturnStatement(
     typeof stringPart === "string" ? factory.createStringLiteral(stringPart) : createTemplate(stringPart)
   );
+}
+
+function createBooleanValue(trueValue: string | StringPart, falseValue: string | StringPart) {
+  const condition = factory.createBinaryExpression(
+    factory.createIdentifier("bool"),
+    SyntaxKind.EqualsEqualsEqualsToken,
+    factory.createTrue()
+  );
+
+  const ifBody = factory.createBlock([createPluralValueReturn(trueValue)], false);
+  const elseBody = factory.createBlock([createPluralValueReturn(falseValue)], false);
+
+  return factory.createIfStatement(condition, ifBody, elseBody);
 }

@@ -6,6 +6,7 @@ export enum ValueDescriptionType {
   Array,
   PlaceholderFunction,
   PluralFunction,
+  BooleanFunction,
 }
 
 export interface ValueDescription {
@@ -32,6 +33,7 @@ export enum ArgType {
   String = "string",
   Number = "number",
   Object = "object",
+  Boolean = "boolean",
 }
 
 export interface Arg {
@@ -53,10 +55,21 @@ export interface PluralFormObjectDescription {
   [pluralFormNthKey]: StringPart | string;
 }
 
+export interface BooleanFormObjectDescription {
+  true: StringPart | string;
+  false: StringPart | string;
+}
+
 export interface PluralFunctionValueDescription extends ValueDescription {
   type: ValueDescriptionType.PluralFunction;
   args: Arg[];
   values: PluralFormObjectDescription;
+}
+
+export interface BooleanFunctionValueDescription extends ValueDescription {
+  type: ValueDescriptionType.BooleanFunction;
+  args: Arg[];
+  values: BooleanFormObjectDescription;
 }
 
 const reverseArgType = new Map(Object.keys(ArgType).map((argTypeKey) => [ArgType[argTypeKey], argTypeKey]));
@@ -102,4 +115,10 @@ export function isPluralFunctionValueDescription(
   valueDescription: ValueDescription
 ): valueDescription is PluralFunctionValueDescription {
   return valueDescription.type === ValueDescriptionType.PluralFunction;
+}
+
+export function isBooleanFunctionValueDescription(
+  valueDescription: ValueDescription
+): valueDescription is BooleanFunctionValueDescription {
+  return valueDescription.type === ValueDescriptionType.BooleanFunction;
 }

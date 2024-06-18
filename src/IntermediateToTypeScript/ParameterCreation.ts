@@ -17,5 +17,7 @@ function mapType(argType: ArgType) {
       return SyntaxKind.NumberKeyword;
     case ArgType.Object:
       return SyntaxKind.ObjectKeyword;
+    case ArgType.Boolean:
+      return SyntaxKind.BooleanKeyword;
   }
 }
