@@ -468,7 +468,7 @@ describe("TypeScriptCreation", () => {
         expect(isBinaryExpression((result.statements[0] as IfStatement).expression)).toBe(true);
         expect(
           (((result.statements[0] as IfStatement).expression as BinaryExpression).left as Identifier).escapedText
-        ).toBe("boolean");
+        ).toBe("bool");
         expect(((result.statements[0] as IfStatement).expression as BinaryExpression).right.kind).toBe(
           SyntaxKind.TrueKeyword
         );

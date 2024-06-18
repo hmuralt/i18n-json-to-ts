@@ -349,7 +349,7 @@ describe("JsonConversion", () => {
         );
         expect(booleanFunctionValueDescription.args).toEqual([
           {
-            name: "boolean",
+            name: "bool",
             type: "boolean",
           },
         ]);
@@ -381,7 +381,7 @@ describe("JsonConversion", () => {
         );
         expect(booleanFunctionValueDescription.args).toEqual([
           {
-            name: "boolean",
+            name: "bool",
             type: "boolean",
           },
           {

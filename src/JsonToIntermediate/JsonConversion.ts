@@ -72,7 +72,7 @@ function getPluralFunctionValues(nthValue: string) {
 }
 
 function convertBooleanFormObject(obj: BooleanFormObject): BooleanFunctionValueDescription {
-  const fixedBoolArg = { name: "boolean", type: ArgType.Boolean };
+  const fixedBoolArg = { name: "bool", type: ArgType.Boolean };
   const argSet = createArgSet([fixedBoolArg]);
   const values = {} as BooleanFormObjectDescription;
 

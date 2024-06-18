@@ -140,20 +140,27 @@ function createPluralIfBlock(valueKey: string, value: string | StringPart) {
 }
 
 function createPluralValueReturn(stringPart: string | StringPart) {
-  return factory.createReturnStatement(
-    typeof stringPart === "string" ? factory.createStringLiteral(stringPart) : createTemplate(stringPart)
-  );
+  return factory.createReturnStatement(createValueString(stringPart));
+}
+
+function createValueString(stringPart: string | StringPart) {
+  return typeof stringPart === "string" ? factory.createStringLiteral(stringPart) : createTemplate(stringPart);
 }
 
 function createBooleanIfElse(trueValue: string | StringPart, falseValue: string | StringPart) {
   const condition = factory.createBinaryExpression(
-    factory.createIdentifier("boolean"),
+    factory.createIdentifier("bool"),
     SyntaxKind.EqualsEqualsEqualsToken,
     factory.createTrue()
   );
 
-  const ifBody = factory.createBlock([createPluralValueReturn(trueValue)], false);
-  const elseBody = factory.createBlock([createPluralValueReturn(falseValue)], false);
-
-  return factory.createIfStatement(condition, ifBody, elseBody);
+  return factory.createReturnStatement(
+    factory.createConditionalExpression(
+      condition,
+      undefined,
+      createValueString(trueValue),
+      undefined,
+      createValueString(falseValue)
+    )
+  );
 }
