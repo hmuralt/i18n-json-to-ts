@@ -9,6 +9,7 @@ import {
   isArrayValueDescription,
   isPrimitiveValueDescription,
   ValueDescriptionType,
+  isBooleanFunctionValueDescription,
 } from "../../src/Intermediate/IntermediateStructure";
 
 describe("JsonConversion", () => {
@@ -314,6 +315,74 @@ describe("JsonConversion", () => {
           {
             name: "count",
             type: "number",
+          },
+          {
+            name: "somePlaceholder",
+            type: "object",
+          },
+          {
+            name: "anotherPlaceholder",
+            type: "string",
+          },
+        ]);
+      });
+
+      it("converts boolean form objects to BooleanFunctionValueDescription", () => {
+        // Arrange
+        const testPropertyName = "myObjectProp";
+        const testPropertyValue = {
+          true: "test is true",
+          false: "test is false",
+        };
+        const testJsonObject = {
+          [testPropertyName]: testPropertyValue,
+        };
+
+        // Act
+        const result = convertObject(testJsonObject);
+
+        // Assert
+        const objectValueDescription = getAs(isObjectValueDescription, result);
+        const booleanFunctionValueDescription = getAs(
+          isBooleanFunctionValueDescription,
+          objectValueDescription.propertyDescriptions.get(testPropertyName)
+        );
+        expect(booleanFunctionValueDescription.args).toEqual([
+          {
+            name: "boolean",
+            type: "boolean",
+          },
+        ]);
+        expect(booleanFunctionValueDescription.values).toEqual({
+          true: "test is true",
+          false: "test is false",
+        });
+      });
+
+      it("adds all args of the boolean form objects property values", () => {
+        // Arrange
+        const testPropertyName = "myObjectProp";
+        const testPropertyValue = {
+          true: "{ somePlaceholder: object } is true",
+          false: "{ anotherPlaceholder: string } is false",
+        };
+        const testJsonObject = {
+          [testPropertyName]: testPropertyValue,
+        };
+
+        // Act
+        const result = convertObject(testJsonObject);
+
+        // Assert
+        const objectValueDescription = getAs(isObjectValueDescription, result);
+        const booleanFunctionValueDescription = getAs(
+          isBooleanFunctionValueDescription,
+          objectValueDescription.propertyDescriptions.get(testPropertyName)
+        );
+        expect(booleanFunctionValueDescription.args).toEqual([
+          {
+            name: "boolean",
+            type: "boolean",
           },
           {
             name: "somePlaceholder",

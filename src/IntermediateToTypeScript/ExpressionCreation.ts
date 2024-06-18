@@ -15,7 +15,6 @@ import {
   PluralFormObjectDescription,
   isBooleanFunctionValueDescription,
   BooleanFunctionValueDescription,
-  BooleanFormObjectDescription,
 } from "../Intermediate/IntermediateStructure";
 import { booleanFormFalseKey, booleanFormTrueKey, pluralFormNthKey } from "../JsonToIntermediate/JsonStructure";
 import createParameters from "./ParameterCreation";
@@ -100,9 +99,12 @@ function createPluralFunction(valueDescription: PluralFunctionValueDescription) 
 function createBooleanFunction(valueDescription: BooleanFunctionValueDescription) {
   const parameters = createParameters(valueDescription.args);
 
-  const statements = createBooleanStatements(valueDescription.values);
+  const ifStatement = createBooleanIfElse(
+    valueDescription.values[booleanFormTrueKey],
+    valueDescription.values[booleanFormFalseKey]
+  );
 
-  const block = factory.createBlock(statements, false);
+  const block = factory.createBlock([ifStatement], false);
 
   return factory.createArrowFunction(undefined, undefined, parameters, undefined, undefined, block);
 }
@@ -125,13 +127,6 @@ function createPluralStatements(values: PluralFormObjectDescription) {
   return statements;
 }
 
-function createBooleanStatements(values: BooleanFormObjectDescription) {
-  const trueValue = values[booleanFormTrueKey];
-  const falseValue = values[booleanFormFalseKey];
-
-  return [createBooleanValue(trueValue, falseValue)];
-}
-
 function createPluralIfBlock(valueKey: string, value: string | StringPart) {
   const condition = factory.createBinaryExpression(
     factory.createIdentifier("count"),
@@ -150,9 +145,9 @@ function createPluralValueReturn(stringPart: string | StringPart) {
   );
 }
 
-function createBooleanValue(trueValue: string | StringPart, falseValue: string | StringPart) {
+function createBooleanIfElse(trueValue: string | StringPart, falseValue: string | StringPart) {
   const condition = factory.createBinaryExpression(
-    factory.createIdentifier("bool"),
+    factory.createIdentifier("boolean"),
     SyntaxKind.EqualsEqualsEqualsToken,
     factory.createTrue()
   );

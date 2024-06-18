@@ -32,6 +32,7 @@ import {
   PlaceholderFunctionValueDescription,
   ArgType,
   PluralFunctionValueDescription,
+  BooleanFunctionValueDescription,
 } from "../../src/Intermediate/IntermediateStructure";
 import createParameters from "../../src/IntermediateToTypeScript/ParameterCreation";
 import createTemplate from "../../src/IntermediateToTypeScript/TemplateExpressionCreation";
@@ -81,6 +82,17 @@ describe("TypeScriptCreation", () => {
       0: "Zero",
       1: ["One ", { name: "pluralArg" }, { name: "count" }],
       n: ["Multi ", { name: "count" }],
+    },
+  };
+  const testBooleanFunctionValueDescription: BooleanFunctionValueDescription = {
+    type: ValueDescriptionType.BooleanFunction,
+    args: [
+      { name: "boolean", type: ArgType.Boolean },
+      { name: "falseArg", type: ArgType.Number },
+    ],
+    values: {
+      true: "True",
+      false: ["False", { name: "falseArg" }],
     },
   };
   const testArrayDescription: ArrayValueDescription = {
@@ -359,6 +371,108 @@ describe("TypeScriptCreation", () => {
           (((result.statements[1] as IfStatement).expression as BinaryExpression).right as NumericLiteral).text
         ).toBe("1");
         expect(((result.statements[1] as IfStatement).expression as BinaryExpression).operatorToken.kind).toBe(
+          SyntaxKind.EqualsEqualsEqualsToken
+        );
+      });
+    });
+    describe("when passed BooleanFunctionValueDescription", () => {
+      beforeEach(() => {
+        (createParameters as jest.Mock).mockClear();
+        (createTemplate as jest.Mock).mockClear();
+      });
+
+      it("returns arrow function", () => {
+        // Arrange
+
+        // Act
+        const result = createExpression(testBooleanFunctionValueDescription);
+
+        // Assert
+        expect(isArrowFunction(result)).toBe(true);
+      });
+
+      it("returns arrow function with arguments", () => {
+        // Arrange
+
+        // Act
+        const result = createExpression(testBooleanFunctionValueDescription) as ArrowFunction;
+
+        // Assert
+        expect(createParameters).toHaveBeenCalledWith(testBooleanFunctionValueDescription.args);
+        expect(result.parameters[0]).toBe(testParameters[0]);
+      });
+
+      it("returns arrow function with block as body", () => {
+        // Arrange
+
+        // Act
+        const result = createExpression(testBooleanFunctionValueDescription) as ArrowFunction;
+
+        // Assert
+        expect(isBlock(result.body)).toBe(true);
+      });
+
+      it("returns arrow function with block containing if else block returning value of true/false", () => {
+        // Arrange
+
+        // Act
+        const result = (createExpression(testBooleanFunctionValueDescription) as ArrowFunction).body as Block;
+
+        // Assert
+        expect(isIfStatement(result.statements[0])).toBe(true);
+        expect(isBlock((result.statements[0] as IfStatement).thenStatement)).toBe(true);
+        expect((result.statements[0] as IfStatement).elseStatement !== undefined).toBe(true);
+        expect(isBlock((result.statements[0] as IfStatement).elseStatement!)).toBe(true);
+
+        expect(isReturnStatement(((result.statements[0] as IfStatement).thenStatement as Block).statements[0])).toBe(
+          true
+        );
+        expect(
+          isStringLiteral(
+            (((result.statements[0] as IfStatement).thenStatement as Block).statements[0] as ReturnStatement)
+              .expression!
+          )
+        ).toBe(true);
+        expect(
+          (
+            (((result.statements[0] as IfStatement).thenStatement as Block).statements[0] as ReturnStatement)
+              .expression as StringLiteral
+          ).text
+        ).toBe(testBooleanFunctionValueDescription.values["true"]);
+
+        expect(isReturnStatement(((result.statements[0] as IfStatement).elseStatement as Block).statements[0])).toBe(
+          true
+        );
+        expect(
+          isStringLiteral(
+            (((result.statements[0] as IfStatement).elseStatement as Block).statements[0] as ReturnStatement)
+              .expression!
+          )
+        ).toBe(true);
+        expect(
+          (
+            (((result.statements[0] as IfStatement).elseStatement as Block).statements[0] as ReturnStatement)
+              .expression as StringLiteral
+          ).text
+        ).toBe(testBooleanFunctionValueDescription.values["false"]);
+      });
+
+      it("returns arrow function with block containing if block checking for true", () => {
+        // Arrange
+
+        // Act
+        const result = (createExpression(testBooleanFunctionValueDescription) as ArrowFunction).body as Block;
+
+        // Assert
+        expect(isIfStatement(result.statements[0])).toBe(true);
+        expect(isBinaryExpression((result.statements[0] as IfStatement).expression)).toBe(true);
+        expect(
+          (((result.statements[0] as IfStatement).expression as BinaryExpression).left as Identifier).escapedText
+        ).toBe("boolean");
+        expect(((result.statements[0] as IfStatement).expression as BinaryExpression).right.kind).toBe(
+          SyntaxKind.TrueKeyword
+        );
+        expect(((result.statements[0] as IfStatement).expression as BinaryExpression).operatorToken.kind).toBe(
           SyntaxKind.EqualsEqualsEqualsToken
         );
       });

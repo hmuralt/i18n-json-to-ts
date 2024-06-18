@@ -11,6 +11,6 @@ export interface PluralFormObject {
 }
 
 export interface BooleanFormObject {
-  type: string;
+  boolean: boolean;
   stringParts: string;
 }
