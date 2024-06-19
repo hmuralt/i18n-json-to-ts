@@ -72,10 +72,10 @@ export interface BooleanFunctionValueDescription extends ValueDescription {
   values: BooleanFormObjectDescription;
 }
 
-const reverseArgType = new Map(Object.keys(ArgType).map((argTypeKey) => [ArgType[argTypeKey], argTypeKey]));
+const reverseArgType = new Map(Object.entries(ArgType).map(([key, value]) => [value, key]));
 
 export function getTypeFrom(typeName: string): ArgType {
-  const argTypeKey = reverseArgType.get(typeName);
+  const argTypeKey = reverseArgType.get(typeName as ArgType) as keyof typeof ArgType | undefined;
 
   return argTypeKey !== undefined ? ArgType[argTypeKey] : ArgType.String;
 }

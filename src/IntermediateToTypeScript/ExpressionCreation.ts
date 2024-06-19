@@ -115,7 +115,7 @@ function createPluralStatements(values: PluralFormObjectDescription) {
   const statements: Statement[] = valueKeys
     .filter((valueKey) => valueKey !== pluralFormNthKey)
     .map((valueKey) => {
-      const value = values[valueKey];
+      const value = values[valueKey as keyof typeof values];
 
       return createPluralIfBlock(valueKey, value);
     });
