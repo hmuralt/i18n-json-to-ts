@@ -99,12 +99,12 @@ function createPluralFunction(valueDescription: PluralFunctionValueDescription) 
 function createBooleanFunction(valueDescription: BooleanFunctionValueDescription) {
   const parameters = createParameters(valueDescription.args);
 
-  const ifStatement = createBooleanIfElse(
+  const conditionalReturn = createBooleanConditionalReturn(
     valueDescription.values[booleanFormTrueKey],
     valueDescription.values[booleanFormFalseKey]
   );
 
-  const block = factory.createBlock([ifStatement], false);
+  const block = factory.createBlock([conditionalReturn], false);
 
   return factory.createArrowFunction(undefined, undefined, parameters, undefined, undefined, block);
 }
@@ -147,16 +147,10 @@ function createValueString(stringPart: string | StringPart) {
   return typeof stringPart === "string" ? factory.createStringLiteral(stringPart) : createTemplate(stringPart);
 }
 
-function createBooleanIfElse(trueValue: string | StringPart, falseValue: string | StringPart) {
-  const condition = factory.createBinaryExpression(
-    factory.createIdentifier("bool"),
-    SyntaxKind.EqualsEqualsEqualsToken,
-    factory.createTrue()
-  );
-
+function createBooleanConditionalReturn(trueValue: string | StringPart, falseValue: string | StringPart) {
   return factory.createReturnStatement(
     factory.createConditionalExpression(
-      condition,
+      factory.createIdentifier("bool"),
       undefined,
       createValueString(trueValue),
       undefined,
