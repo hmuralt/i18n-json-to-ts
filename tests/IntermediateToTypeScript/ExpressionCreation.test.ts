@@ -21,6 +21,8 @@ import {
   isBinaryExpression,
   BinaryExpression,
   NumericLiteral,
+  isConditionalExpression,
+  ConditionalExpression,
 } from "typescript";
 import createExpression from "../../src/IntermediateToTypeScript/ExpressionCreation";
 import {
@@ -412,69 +414,30 @@ describe("TypeScriptCreation", () => {
         expect(isBlock(result.body)).toBe(true);
       });
 
-      it("returns arrow function with block containing if else block returning value of true/false", () => {
+      it("returns arrow function with block containing conditional return", () => {
         // Arrange
 
         // Act
         const result = (createExpression(testBooleanFunctionValueDescription) as ArrowFunction).body as Block;
 
         // Assert
-        expect(isIfStatement(result.statements[0])).toBe(true);
-        expect(isBlock((result.statements[0] as IfStatement).thenStatement)).toBe(true);
-        expect((result.statements[0] as IfStatement).elseStatement !== undefined).toBe(true);
-        expect(isBlock((result.statements[0] as IfStatement).elseStatement!)).toBe(true);
-
-        expect(isReturnStatement(((result.statements[0] as IfStatement).thenStatement as Block).statements[0])).toBe(
-          true
+        expect(isReturnStatement(result.statements[0])).toBe(true);
+        expect(isConditionalExpression((result.statements[0] as ReturnStatement).expression!)).toBe(true);
+        expect(((result.statements[0] as ReturnStatement).expression as ConditionalExpression).condition.kind).toBe(
+          SyntaxKind.Identifier
         );
         expect(
-          isStringLiteral(
-            (((result.statements[0] as IfStatement).thenStatement as Block).statements[0] as ReturnStatement)
-              .expression!
-          )
-        ).toBe(true);
-        expect(
-          (
-            (((result.statements[0] as IfStatement).thenStatement as Block).statements[0] as ReturnStatement)
-              .expression as StringLiteral
-          ).text
-        ).toBe(testBooleanFunctionValueDescription.values["true"]);
-
-        expect(isReturnStatement(((result.statements[0] as IfStatement).elseStatement as Block).statements[0])).toBe(
-          true
-        );
-        expect(
-          isStringLiteral(
-            (((result.statements[0] as IfStatement).elseStatement as Block).statements[0] as ReturnStatement)
-              .expression!
-          )
-        ).toBe(true);
-        expect(
-          (
-            (((result.statements[0] as IfStatement).elseStatement as Block).statements[0] as ReturnStatement)
-              .expression as StringLiteral
-          ).text
-        ).toBe(testBooleanFunctionValueDescription.values["false"]);
-      });
-
-      it("returns arrow function with block containing if block checking for true", () => {
-        // Arrange
-
-        // Act
-        const result = (createExpression(testBooleanFunctionValueDescription) as ArrowFunction).body as Block;
-
-        // Assert
-        expect(isIfStatement(result.statements[0])).toBe(true);
-        expect(isBinaryExpression((result.statements[0] as IfStatement).expression)).toBe(true);
-        expect(
-          (((result.statements[0] as IfStatement).expression as BinaryExpression).left as Identifier).escapedText
+          (((result.statements[0] as ReturnStatement).expression as ConditionalExpression).condition as Identifier)
+            .escapedText
         ).toBe("bool");
-        expect(((result.statements[0] as IfStatement).expression as BinaryExpression).right.kind).toBe(
-          SyntaxKind.TrueKeyword
+        expect(
+          (((result.statements[0] as ReturnStatement).expression as ConditionalExpression).whenTrue as StringLiteral)
+            .text
+        ).toBe(testBooleanFunctionValueDescription.values.true);
+        expect(((result.statements[0] as ReturnStatement).expression as ConditionalExpression).whenFalse).toBe(
+          testTemplateExpression
         );
-        expect(((result.statements[0] as IfStatement).expression as BinaryExpression).operatorToken.kind).toBe(
-          SyntaxKind.EqualsEqualsEqualsToken
-        );
+        expect(createTemplate).toHaveBeenCalledWith(testBooleanFunctionValueDescription.values.false);
       });
     });
   });
