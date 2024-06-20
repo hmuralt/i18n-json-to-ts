@@ -21,6 +21,8 @@ import {
   isBinaryExpression,
   BinaryExpression,
   NumericLiteral,
+  isConditionalExpression,
+  ConditionalExpression,
 } from "typescript";
 import createExpression from "../../src/IntermediateToTypeScript/ExpressionCreation";
 import {
@@ -32,6 +34,7 @@ import {
   PlaceholderFunctionValueDescription,
   ArgType,
   PluralFunctionValueDescription,
+  BooleanFunctionValueDescription,
 } from "../../src/Intermediate/IntermediateStructure";
 import createParameters from "../../src/IntermediateToTypeScript/ParameterCreation";
 import createTemplate from "../../src/IntermediateToTypeScript/TemplateExpressionCreation";
@@ -81,6 +84,17 @@ describe("TypeScriptCreation", () => {
       0: "Zero",
       1: ["One ", { name: "pluralArg" }, { name: "count" }],
       n: ["Multi ", { name: "count" }],
+    },
+  };
+  const testBooleanFunctionValueDescription: BooleanFunctionValueDescription = {
+    type: ValueDescriptionType.BooleanFunction,
+    args: [
+      { name: "boolean", type: ArgType.Boolean },
+      { name: "falseArg", type: ArgType.Number },
+    ],
+    values: {
+      true: "True",
+      false: ["False", { name: "falseArg" }],
     },
   };
   const testArrayDescription: ArrayValueDescription = {
@@ -361,6 +375,69 @@ describe("TypeScriptCreation", () => {
         expect(((result.statements[1] as IfStatement).expression as BinaryExpression).operatorToken.kind).toBe(
           SyntaxKind.EqualsEqualsEqualsToken
         );
+      });
+    });
+    describe("when passed BooleanFunctionValueDescription", () => {
+      beforeEach(() => {
+        (createParameters as jest.Mock).mockClear();
+        (createTemplate as jest.Mock).mockClear();
+      });
+
+      it("returns arrow function", () => {
+        // Arrange
+
+        // Act
+        const result = createExpression(testBooleanFunctionValueDescription);
+
+        // Assert
+        expect(isArrowFunction(result)).toBe(true);
+      });
+
+      it("returns arrow function with arguments", () => {
+        // Arrange
+
+        // Act
+        const result = createExpression(testBooleanFunctionValueDescription) as ArrowFunction;
+
+        // Assert
+        expect(createParameters).toHaveBeenCalledWith(testBooleanFunctionValueDescription.args);
+        expect(result.parameters[0]).toBe(testParameters[0]);
+      });
+
+      it("returns arrow function with block as body", () => {
+        // Arrange
+
+        // Act
+        const result = createExpression(testBooleanFunctionValueDescription) as ArrowFunction;
+
+        // Assert
+        expect(isBlock(result.body)).toBe(true);
+      });
+
+      it("returns arrow function with block containing conditional return", () => {
+        // Arrange
+
+        // Act
+        const result = (createExpression(testBooleanFunctionValueDescription) as ArrowFunction).body as Block;
+
+        // Assert
+        expect(isReturnStatement(result.statements[0])).toBe(true);
+        expect(isConditionalExpression((result.statements[0] as ReturnStatement).expression!)).toBe(true);
+        expect(((result.statements[0] as ReturnStatement).expression as ConditionalExpression).condition.kind).toBe(
+          SyntaxKind.Identifier
+        );
+        expect(
+          (((result.statements[0] as ReturnStatement).expression as ConditionalExpression).condition as Identifier)
+            .escapedText
+        ).toBe("bool");
+        expect(
+          (((result.statements[0] as ReturnStatement).expression as ConditionalExpression).whenTrue as StringLiteral)
+            .text
+        ).toBe(testBooleanFunctionValueDescription.values.true);
+        expect(((result.statements[0] as ReturnStatement).expression as ConditionalExpression).whenFalse).toBe(
+          testTemplateExpression
+        );
+        expect(createTemplate).toHaveBeenCalledWith(testBooleanFunctionValueDescription.values.false);
       });
     });
   });

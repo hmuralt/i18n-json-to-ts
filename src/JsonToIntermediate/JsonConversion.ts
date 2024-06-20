@@ -12,12 +12,27 @@ import {
   PrimitiveValueDescription,
   isPrimitiveStringValueDescription,
   ArrayValueDescription,
+  BooleanFunctionValueDescription,
+  BooleanFormObjectDescription,
 } from "../Intermediate/IntermediateStructure";
 import { placeholderRegex, getAllMatches } from "./RegexUtils";
-import { PluralFormObject, PrimitiveJsonType, pluralFormNthKey } from "./JsonStructure";
+import {
+  BooleanFormObject,
+  PluralFormObject,
+  PrimitiveJsonType,
+  booleanFormFalseKey,
+  booleanFormTrueKey,
+  pluralFormNthKey,
+} from "./JsonStructure";
 
-export default function convertObject(value: object): ObjectValueDescription | PluralFunctionValueDescription {
-  return isPluralFormObject(value) ? convertPluralFormObject(value) : convertSimpleObject(value);
+export default function convertObject(
+  value: object
+): ObjectValueDescription | PluralFunctionValueDescription | BooleanFunctionValueDescription {
+  return isPluralFormObject(value)
+    ? convertPluralFormObject(value)
+    : isBooleanFormObject(value)
+    ? convertBooleanFormObject(value)
+    : convertSimpleObject(value);
 }
 
 function convertPluralFormObject(obj: PluralFormObject): PluralFunctionValueDescription {
@@ -56,6 +71,34 @@ function getPluralFunctionValues(nthValue: string) {
   return isPrimitiveValueDescription(nthValueDescription)
     ? { n: nthValueDescription.value }
     : { n: nthValueDescription.stringParts };
+}
+
+function convertBooleanFormObject(obj: BooleanFormObject): BooleanFunctionValueDescription {
+  const fixedBoolArg = { name: "bool", type: ArgType.Boolean };
+  const argSet = createArgSet([fixedBoolArg]);
+  const values = {} as BooleanFormObjectDescription;
+
+  const keys = Object.keys(obj);
+  for (const key of keys) {
+    const valueDescription = convertString(obj[key]);
+
+    if (isPrimitiveStringValueDescription(valueDescription)) {
+      values[key] = valueDescription.value;
+      continue;
+    }
+
+    for (const arg of valueDescription.args) {
+      argSet.add(arg);
+    }
+
+    values[key] = valueDescription.stringParts;
+  }
+
+  return {
+    type: ValueDescriptionType.BooleanFunction,
+    args: argSet.args,
+    values,
+  };
 }
 
 function convertSimpleObject(obj: object): ObjectValueDescription {
@@ -149,6 +192,14 @@ function isPluralFormObject(obj: { [pluralFormNthKey]?: string }): obj is Plural
     Object.keys(obj).every(
       (key) => (key === pluralFormNthKey || /^\d+$/.test(key)) && typeof obj[key as keyof typeof obj] === "string"
     )
+  );
+}
+
+function isBooleanFormObject(obj: { stringParts?: string }): obj is BooleanFormObject {
+  return (
+    obj[booleanFormTrueKey] !== undefined &&
+    obj[booleanFormFalseKey] !== undefined &&
+    Object.keys(obj).every((key) => (key === booleanFormTrueKey || booleanFormFalseKey) && typeof obj[key] === "string")
   );
 }
 

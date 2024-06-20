@@ -13,8 +13,10 @@ import {
   PluralFunctionValueDescription,
   StringPart,
   PluralFormObjectDescription,
+  isBooleanFunctionValueDescription,
+  BooleanFunctionValueDescription,
 } from "../Intermediate/IntermediateStructure";
-import { pluralFormNthKey } from "../JsonToIntermediate/JsonStructure";
+import { booleanFormFalseKey, booleanFormTrueKey, pluralFormNthKey } from "../JsonToIntermediate/JsonStructure";
 import createParameters from "./ParameterCreation";
 import createTemplate from "./TemplateExpressionCreation";
 
@@ -39,6 +41,10 @@ export default function createExpression(valueDescription: ValueDescription): Ex
 
   if (isPluralFunctionValueDescription(valueDescription)) {
     return createPluralFunction(valueDescription);
+  }
+
+  if (isBooleanFunctionValueDescription(valueDescription)) {
+    return createBooleanFunction(valueDescription);
   }
 
   return factory.createStringLiteral("");
@@ -90,6 +96,19 @@ function createPluralFunction(valueDescription: PluralFunctionValueDescription) 
   return factory.createArrowFunction(undefined, undefined, parameters, undefined, undefined, block);
 }
 
+function createBooleanFunction(valueDescription: BooleanFunctionValueDescription) {
+  const parameters = createParameters(valueDescription.args);
+
+  const conditionalReturn = createBooleanConditionalReturn(
+    valueDescription.values[booleanFormTrueKey],
+    valueDescription.values[booleanFormFalseKey]
+  );
+
+  const block = factory.createBlock([conditionalReturn], false);
+
+  return factory.createArrowFunction(undefined, undefined, parameters, undefined, undefined, block);
+}
+
 function createPluralStatements(values: PluralFormObjectDescription) {
   const valueKeys = Object.keys(values);
 
@@ -121,7 +140,21 @@ function createPluralIfBlock(valueKey: string, value: string | StringPart) {
 }
 
 function createPluralValueReturn(stringPart: string | StringPart) {
+  return factory.createReturnStatement(createValueString(stringPart));
+}
+
+function createValueString(stringPart: string | StringPart) {
+  return typeof stringPart === "string" ? factory.createStringLiteral(stringPart) : createTemplate(stringPart);
+}
+
+function createBooleanConditionalReturn(trueValue: string | StringPart, falseValue: string | StringPart) {
   return factory.createReturnStatement(
-    typeof stringPart === "string" ? factory.createStringLiteral(stringPart) : createTemplate(stringPart)
+    factory.createConditionalExpression(
+      factory.createIdentifier("bool"),
+      undefined,
+      createValueString(trueValue),
+      undefined,
+      createValueString(falseValue)
+    )
   );
 }
