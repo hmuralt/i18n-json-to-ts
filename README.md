@@ -16,6 +16,10 @@ JSON
 		"0": "No example tags here.",
 		"1": "There is one example tag with name {name: string}.",
 		"n": "There are {count: number} example tags with name {name: string}."
+	},
+	"booleanTexts": {
+		"true": "The bool is true",
+		"false": "The bool is false"
 	}
 }
 ```
@@ -34,6 +38,9 @@ Resulting TypeScript
 			return `There is one example tag with name ${name}.`;
 		}
 		return `There are ${count} example tags with name ${name}.`;
+	},
+	booleanTexts: (bool: boolean) => {
+		return bool ? "The bool is true" : "The bool is false"
 	}
 }
 ```
@@ -48,6 +55,10 @@ getTypeScriptFromString(`{
     "0": "No example tags here.",
     "1": "There is one example tag with name {name: string}.",
     "n": "There are {count: number} example tags with name {name: string}."
+  },
+  "booleanTexts": {
+    "true": "The bool is true",
+    "false": "The bool is false"
   }
 }`);
 ```
