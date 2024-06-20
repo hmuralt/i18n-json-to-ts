@@ -1,4 +1,9 @@
-import { PrimitiveJsonType, pluralFormNthKey } from "../JsonToIntermediate/JsonStructure";
+import {
+  PrimitiveJsonType,
+  pluralFormNthKey,
+  booleanFormFalseKey,
+  booleanFormTrueKey,
+} from "../JsonToIntermediate/JsonStructure";
 
 export enum ValueDescriptionType {
   Primitive,
@@ -56,8 +61,8 @@ export interface PluralFormObjectDescription {
 }
 
 export interface BooleanFormObjectDescription {
-  true: StringPart | string;
-  false: StringPart | string;
+  [booleanFormFalseKey]: StringPart | string;
+  [booleanFormTrueKey]: StringPart | string;
 }
 
 export interface PluralFunctionValueDescription extends ValueDescription {
