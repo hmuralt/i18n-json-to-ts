@@ -14,6 +14,7 @@ import {
   ArrayValueDescription,
   BooleanFunctionValueDescription,
   BooleanFormObjectDescription,
+  PluralFormObjectDescription,
 } from "../Intermediate/IntermediateStructure";
 import { placeholderRegex, getAllMatches } from "./RegexUtils";
 import {
@@ -37,26 +38,32 @@ export default function convertObject(
 
 function convertPluralFormObject(obj: PluralFormObject): PluralFunctionValueDescription {
   const fixedCountArg = { name: "count", type: ArgType.Number };
-  const argSet = createArgSet([fixedCountArg]);
-  const values = getPluralFunctionValues(obj[pluralFormNthKey]) as Record<string, StringPart | string> & {
-    [pluralFormNthKey]: string | StringPart;
-  };
 
-  const keys = Object.keys(obj).filter((key) => key !== pluralFormNthKey);
-  for (const key of keys) {
-    const valueDescription = convertString(obj[key as keyof typeof obj]);
+  const [values, argSet] = Object.keys(obj)
+    .filter((key) => key !== pluralFormNthKey)
+    .reduce(
+      ([values, argSet], key) => {
+        const objKey = key as keyof typeof obj;
+        const valuesKey = key as keyof PluralFormObjectDescription;
+        const valueDescription = convertString(obj[objKey]);
 
-    if (isPrimitiveStringValueDescription(valueDescription)) {
-      values[key] = valueDescription.value;
-      continue;
-    }
+        if (isPrimitiveStringValueDescription(valueDescription)) {
+          values[valuesKey] = valueDescription.value;
+          return [values, argSet];
+        }
 
-    for (const arg of valueDescription.args) {
-      argSet.add(arg);
-    }
+        for (const arg of valueDescription.args) {
+          argSet.add(arg);
+        }
 
-    values[key] = valueDescription.stringParts;
-  }
+        values[valuesKey] = valueDescription.stringParts;
+        return [values, argSet];
+      },
+      [
+        getPluralFunctionValues(obj[pluralFormNthKey]) as PluralFormObjectDescription,
+        createArgSet([fixedCountArg]),
+      ] as const
+    );
 
   return {
     type: ValueDescriptionType.PluralFunction,
@@ -75,24 +82,26 @@ function getPluralFunctionValues(nthValue: string) {
 
 function convertBooleanFormObject(obj: BooleanFormObject): BooleanFunctionValueDescription {
   const fixedBoolArg = { name: "bool", type: ArgType.Boolean };
-  const argSet = createArgSet([fixedBoolArg]);
-  const values = {} as BooleanFormObjectDescription;
+  const [values, argSet] = [booleanFormTrueKey, booleanFormFalseKey].reduce(
+    ([values, argSet], key) => {
+      const objKey = key as keyof typeof obj;
+      const valuesKey = key as keyof BooleanFormObjectDescription;
+      const valueDescription = convertString(obj[objKey]);
 
-  const keys = Object.keys(obj);
-  for (const key of keys) {
-    const valueDescription = convertString(obj[key]);
+      if (isPrimitiveStringValueDescription(valueDescription)) {
+        values[valuesKey] = valueDescription.value;
+        return [values, argSet];
+      }
 
-    if (isPrimitiveStringValueDescription(valueDescription)) {
-      values[key] = valueDescription.value;
-      continue;
-    }
+      for (const arg of valueDescription.args) {
+        argSet.add(arg);
+      }
 
-    for (const arg of valueDescription.args) {
-      argSet.add(arg);
-    }
-
-    values[key] = valueDescription.stringParts;
-  }
+      values[valuesKey] = valueDescription.stringParts;
+      return [values, argSet];
+    },
+    [{} as BooleanFormObjectDescription, createArgSet([fixedBoolArg])] as const
+  );
 
   return {
     type: ValueDescriptionType.BooleanFunction,
@@ -118,8 +127,7 @@ function convertSimpleObject(obj: object): ObjectValueDescription {
   };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function convertArray(values: any[]): ArrayValueDescription {
+function convertArray(values: unknown[]): ArrayValueDescription {
   const valueDescriptions = values.map((value) => convertValue(value));
 
   return {
@@ -195,11 +203,15 @@ function isPluralFormObject(obj: { [pluralFormNthKey]?: string }): obj is Plural
   );
 }
 
-function isBooleanFormObject(obj: { stringParts?: string }): obj is BooleanFormObject {
+function isBooleanFormObject(obj: {
+  [booleanFormTrueKey]?: string;
+  [booleanFormFalseKey]?: string;
+}): obj is BooleanFormObject {
   return (
     obj[booleanFormTrueKey] !== undefined &&
+    typeof obj[booleanFormTrueKey] === "string" &&
     obj[booleanFormFalseKey] !== undefined &&
-    Object.keys(obj).every((key) => (key === booleanFormTrueKey || booleanFormFalseKey) && typeof obj[key] === "string")
+    typeof obj[booleanFormFalseKey] === "string"
   );
 }
 
