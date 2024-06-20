@@ -1,6 +1,6 @@
 {
   "name": "i18n-json-to-ts",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Tool to generate TypeScript out of I18N JSON strings.",
   "main": "index.js",
   "repository": {
