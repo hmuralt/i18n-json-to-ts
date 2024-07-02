@@ -141,7 +141,8 @@ function convertValue(value: any) {
   const valueType = typeof value;
 
   if (valueType === "string") {
-    return convertString(value);
+    const values = value.split("{}");
+    return values.length === 1 ? convertString(value) : convertArray(values);
   }
 
   if (Array.isArray(value)) {

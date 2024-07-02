@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import convertObject from "../../src/JsonToIntermediate/JsonConversion";
 import {
   ArgType,
@@ -183,6 +182,39 @@ describe("JsonConversion", () => {
           {
             name: testPlaceholderName,
             type: ArgType.String,
+          },
+        ]);
+      });
+
+      it("converts empty placeholders to string array", () => {
+        // Arrange
+        const testPropertyName = "myStringProp";
+        const testPropertyValue = `This is {} a {}.`;
+        const testJsonObject = {
+          [testPropertyName]: testPropertyValue,
+        };
+
+        // Act
+        const result = convertObject(testJsonObject);
+
+        // Assert
+        const objectValueDescription = getAs(isObjectValueDescription, result);
+        const innerArrayValueDescription = getAs(
+          isArrayValueDescription,
+          objectValueDescription.propertyDescriptions.get(testPropertyName)
+        );
+        expect(innerArrayValueDescription.valueDescriptions).toEqual([
+          {
+            type: ValueDescriptionType.Primitive,
+            value: "This is ",
+          },
+          {
+            type: ValueDescriptionType.Primitive,
+            value: " a ",
+          },
+          {
+            type: ValueDescriptionType.Primitive,
+            value: ".",
           },
         ]);
       });
