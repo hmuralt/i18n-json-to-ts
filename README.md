@@ -1,4 +1,4 @@
-# i18nJsonToTs
+# i18n JSON to TypeScript
 
 Utility to generate TypeScript out of a translatable I18N JSON. (using TypeScript compiler API)
 
